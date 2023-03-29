@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="../../plugins/element-ui/index.css"/>
+  <link rel="stylesheet" href="../../styles/common.css"/>
+  <link rel="stylesheet" href="../../styles/page.css"/>
+  <style>
+    #member-app .notAdmin::after {
+      border: 0 !important;
+
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard-container" id="member-app">
+  <div class="container">
+    <div class="tableBar">
+      <el-button plain @change="init" style="position: absolute;z-index: 2;display: none"></el-button>
+      <el-input v-model="input" placeholder="请输入入库单号" style="width: 250px" clearable>
+        <i slot="prefix" class="el-input__icon el-icon-search" style="cursor: pointer" @click="init"></i>
+      </el-input>
+      <el-date-picker v-model="oderTime"
+                      clearable
+                      value-format="yyyy-MM-dd HH:mm:ss"
+                      type="datetimerange"
+                      placeholder="选择日期"
+                      range-separator="至"
+                      start-placeholder="开始日期"
+                      end-placeholder="结束日期"
+                      :default-time="['00:00:00', '23:59:59']"
+                      style="width: 400px;position: absolute;left: 300px"
+      ></el-date-picker>
+      <el-button type="primary" plain @click="init" style="position: absolute; left: 730px;">查询全部</el-button>
+        <el-switch
+                style="position: absolute;left: 900px;top: 25px"
+                active-text="显示全部"
+                inactive-text="显示未入库"
+                v-model="allbutton"
+                active-color="#13ce66"
+                active-value="1"
+                inactive-value="0"
+                @change="init"
+        >
+        </el-switch>
+      <el-switch
+              style="position: absolute;left: 980px;top: 55px"
+              active-text="按时间显示"
+              v-model="orderByTime"
+              active-color="#13ce66"
+              active-value="1"
+              inactive-value="0"
+              @change="init"
+      >
+      </el-switch>
+    </div>
+    <el-table
+            :header-cell-style="{ textAlign: 'center' }"
+            :cell-style="{ textAlign: 'center' }"
+            :data="tableData"
+            stripe
+            class="tableBox"
+            @selection-change="handleSelectionChange"
+    >
+      <el-table-column
+              type="selection"
+      ></el-table-column>
+      <el-table-column
+              width="180"
+              prop="id"
+              label="入库单号"
+      ></el-table-column>
+
+      <el-table-column
+              width="200px"
+              prop="informDescription"
+              label="描述"
+      >
+        <template slot-scope="scope">
+          <el-popover
+                  placement="top"
+                  title="入库单描述"
+                  width="300"
+                  trigger="hover"
+                  :content=scope.row.informDescription>
+            <span slot="reference">轻碰查看入库单描述</span>
+          </el-popover>
+        </template>
+      </el-table-column>
+
+      <el-table-column
+              width="100px"
+              prop="userName"
+              label="提交人"
+      ></el-table-column>
+
+      <el-table-column
+              width="120px"
+              prop="urgentStatus"
+              label="紧急状态">
+        <template slot-scope="scope">
+          <span v-if="scope.row.urgentStatus==0">正常</span>
+          <span v-if="scope.row.urgentStatus==1">紧急</span>
+          <span v-if="scope.row.urgentStatus==2">非常紧急</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column
+              width="200px"
+              prop="createTime"
+              label="创建时间">
+      </el-table-column>
+      <el-table-column
+              width="120px"
+              prop="checkStatus"
+              label="审核状态" >
+        <template slot-scope="scope">
+          <span v-if=" scope.row.checkStatus == '1'" style="color: red">审核成功</span>
+        </template>
+      </el-table-column>
+      <el-table-column
+              width="120px"
+              prop="storageStatus"
+              label="入库状态" >
+        <template slot-scope="scope">
+          <span v-if=" scope.row.storageStatus == '1'" style="color: red">已入库</span>
+          <span v-if=" scope.row.storageStatus == '0'" style="color: red">未入库</span>
+        </template>
+      </el-table-column>
+      <el-table-column
+              label="操作"
+              width="150"
+              align="center"
+      >
+        <template slot-scope="scope" >
+          <el-button
+                  v-if="scope.row.isSubmit==1"
+                  type="text"
+                  size="small"
+                  class="blueBug"
+                  @click="addMaterialHandle(scope.row.id,'show')"
+          >
+            查看
+          </el-button>
+          <el-button
+                  v-if="scope.row.storageStatus==0"
+                  type="text"
+                  size="small"
+                  class="blueBug"
+                  @click="addMaterialHandle(scope.row.id,'instorage')"
+          >
+            入库
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination
+            class="pageList"
+            :page-sizes="[8,12,15]"
+            :page-size="pageSize"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="counts"
+            :current-page.sync="page"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+    ></el-pagination>
+  </div>
+</div>
+<!-- 开发环境版本，包含了有帮助的命令行警告 -->
+<script src="../../plugins/vue/vue.js"></script>
+<script src="../../index0.html"></script>
+<!-- 引入组件库 -->
+<script src="../../plugins/element-ui/index.js"></script>
+<!-- 引入axios -->
+<script src="../../plugins/axios/axios.min.js"></script>
+<script src="../../js/request.js"></script>
+<script src="../../api/material.js"></script>
+<script src="../../api/checkIn.js"></script>
+<script src="../../js/validate.js"></script>
+<script src="../../js/index.js"></script>
+<script>
+  new Vue({
+    el: '#member-app',
+    data() {
+      return {
+        allbutton:'0',//是否显示全部的按钮
+        orderByTime:'0',//按时间显示
+        oderTime:'',
+        input2: '',
+        input: '',
+        counts: 0,
+        page: 1,
+        pageSize: 8,
+        tableData: [],
+        id: '',
+        status: '',
+        checkData: {
+          'title': '审核入库单',
+          'dialogVisible': false,
+          'id':'',
+          'checkStatus':'',
+          'checkDescription': ''
+        }
+      }
+    },
+    watch:{
+      oderTime (val) {
+        if (val && val.length >= 2) {
+          this.beginTime = val[0]
+          this.endTime = val[1]
+        } else {
+          this.beginTime = ''
+          this.endTime = ''
+        }
+      }
+    },
+    computed: {},
+    created() {
+      this.init()
+    },
+    mounted() {
+    },
+
+    methods: {
+      async init() {
+        const params = {
+          page: this.page,
+          pageSize: this.pageSize,
+          id: this.input ? this.input : undefined,
+          beginTime: this.beginTime ? this.beginTime : undefined,
+          endTime: this.endTime ? this.endTime : undefined,
+          checkStatus: '已审核',
+          storageStatus: this.allbutton==0? '未入库':undefined,
+          orderByTime: this.orderByTime==1? '按时间排序':undefined
+        }
+        await getAllInformCheck(params).then(res => {
+          if (String(res.code) === '1') {
+            this.$message.success('查询成功' )
+            this.tableData = res.data.records || []
+            console.log(res.data.recoders)
+            this.counts = res.data.total
+            console.log(res.data.total)
+            //添加通知
+            if(this.tableData.length>0&&this.allbutton==0){
+              this.$notify({
+                title: '消息',
+                message: '当前有待入库事项',
+                type: 'warning',
+                position: 'top-left'
+              });
+            }
+          }
+        }).catch(err => {
+          this.$message.error('请求出错了：' + err)
+        })
+
+      },
+      // 查看入库单
+      addMaterialHandle(id,st)
+      {
+        if(st==='show'){
+          window.parent.menuHandle({
+            id: '3',
+            url: '/resource/page/storage/informShow.html?type=show&id=' + id,
+            name: '查看入库单'
+          }, true)
+        }else if(st==='instorage') { //实现入仓库功能
+          window.parent.menuHandle({
+            id: '3',
+            url: '/resource/page/storage/informShow.html?type=instorage&id=' + id,
+            name: '查看入库单'
+          }, true)
+        }
+      },
+      handleQuery()
+      {
+        this.page = 1;
+        this.init();
+      },
+      handleSizeChange(val)
+      {
+        this.pageSize = val
+        this.init()
+      }
+      ,
+      handleCurrentChange(val)
+      {
+        this.page = val
+        this.init()
+      },
+      //多选框 , 全部操作
+      handleSelectionChange(val)
+      {
+        let checkArr = []
+        val.forEach((n) => {
+          checkArr.push(n.id)
+        })
+        this.checkList = checkArr
+      },
+    }
+  })
+</script>
+</body>
+</html>

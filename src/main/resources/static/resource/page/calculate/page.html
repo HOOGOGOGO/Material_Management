@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../../plugins/element-ui/index.css"/>
+    <link rel="stylesheet" href="../../styles/common.css"/>
+    <link rel="stylesheet" href="../../styles/page.css"/>
+    <style>
+        #member-app .notAdmin::after {
+            border: 0 !important;
+
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container" id="member-app">
+    <div class="container">
+        <div class="tableBar">
+            <el-date-picker v-model="oderTime"
+                            clearable
+                            value-format="yyyy-MM-dd HH:mm:ss"
+                            type="datetimerange"
+                            placeholder="选择日期"
+                            range-separator="至"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期"
+                            :default-time="['00:00:00', '23:59:59']"
+                            style="width: 400px;position: absolute;left: 150px;top: 20px;"
+            ></el-date-picker>
+            <el-button   style="position: absolute;left: 600px;top: 20px;" type="info" plain @click="calculateHandle('批量')">统计</el-button>
+            <el-button type="primary" plain @click="calculateHandle('全部')" style="position: absolute; left: 670px;top: 20px">统计全部</el-button>
+        </div>
+        <el-table
+                style="margin-top: 50px"
+                :header-cell-style="{ textAlign: 'center' }"
+                :cell-style="{ textAlign: 'center' }"
+                :data="tableData"
+                stripe
+                class="tableBox"
+                @selection-change="handleSelectionChange"
+        >
+            <el-table-column
+                    type="selection"
+            ></el-table-column>
+            <el-table-column
+
+                    prop="name"
+                    label="材料名称"
+            ></el-table-column>
+            <el-table-column
+
+                    prop="categoryDto.categoryName"
+                    label="材料分类"
+            ></el-table-column>
+            <el-table-column
+
+                    prop="specification"
+                    label="材料规格">
+            </el-table-column>
+
+            <el-table-column
+
+                    prop="unit"
+                    label="材料单位" >
+            </el-table-column>
+
+        </el-table>
+        <el-pagination
+                class="pageList"
+                :page-sizes="[8,12,15]"
+                :page-size="pageSize"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="counts"
+                :current-page.sync="page"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+        ></el-pagination>
+    </div>
+</div>
+<!-- 开发环境版本，包含了有帮助的命令行警告 -->
+<script src="../../plugins/vue/vue.js"></script>
+<script src="../../index1.html"></script>
+<!-- 引入组件库 -->
+<script src="../../plugins/element-ui/index.js"></script>
+<!-- 引入axios -->
+<script src="../../plugins/axios/axios.min.js"></script>
+<script src="../../js/request.js"></script>
+<script src="../../api/material.js"></script>
+<script>
+    new Vue({
+        el: '#member-app',
+        data() {
+            return {
+                counts: 0,
+                page: 1,
+                pageSize: 8,
+                tableData: [],
+                id: '',
+                status: '',
+                checkList:[],
+                oderTime:'',//时间选择器
+            }
+        },
+        computed: {},
+        created() {
+            this.init()
+        },
+        watch:{
+            oderTime (val){
+                if (val && val.length >= 2) {
+                    this.beginTime = val[0]
+                    this.endTime = val[1]
+                } else {
+                    this.beginTime = ''
+                    this.endTime = ''
+                }
+            }
+        },
+        mounted() {
+
+        },
+        methods: {
+            async init() {
+                const params = {
+                    page: this.page,
+                    pageSize: this.pageSize,
+                }
+                await getAllMaterial(params).then(res => {
+                    if (String(res.code) === '1') {
+                        this.tableData = res.data.records || []
+                        console.log(res.data.recoders)
+                        this.counts = res.data.total
+                    }
+                }).catch(err => {
+                    this.$message.error('请求出错了：' + err)
+                })
+
+            },
+
+            handleQuery()
+            {
+                this.page = 1;
+                this.init();
+            }
+            ,
+            handleSizeChange(val)
+            {
+                this.pageSize = val
+                this.init()
+            }
+            ,
+            handleCurrentChange(val)
+            {
+                this.page = val
+                this.init()
+            }
+            ,
+            //多选框 , 全部操作
+            handleSelectionChange(val)
+            {
+                let checkArr = []
+                val.forEach((n) => {
+                    checkArr.push(n.id)
+                })
+                this.checkList = checkArr
+            },
+            // 批量删除，或者单个删除
+            calculateHandle(type, id)
+            {
+                if (type === '批量'  ) {
+                    if (this.checkList.length === 0) {
+                        return this.$message.error('请选择统计对象')
+                    }
+                    const  params={
+                        ids:this.checkList.join(','),
+                        beginTime: this.beginTime ? this.beginTime : undefined,
+                        endTime: this.endTime ? this.endTime : undefined,
+                    }
+                    //将当前参数信息存储到本地中
+                    localStorage.setItem('calculateData',JSON.stringify(params));
+                    window.parent.menuHandle({
+                        id: '5',
+                        url: '/resource/page/calculate/list.html',
+                        name: '统计材料信息',
+                        params
+                    }, true)
+                }else if(type === '全部'){
+                    const params={
+                        beginTime: this.beginTime ? this.beginTime : undefined,
+                        endTime: this.endTime ? this.endTime : undefined,
+                    }
+                    //将当前参数信息存储到本地中
+                    localStorage.setItem('calculateData',JSON.stringify(params));
+                    window.parent.menuHandle({
+                        id: '5',
+                        url: '/resource/page/calculate/list.html',
+                        name: '统计材料信息',
+                        params
+                    }, true)
+                }
+
+
+            }
+        }
+    })
+</script>
+</body>
+</html>

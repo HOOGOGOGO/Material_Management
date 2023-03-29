@@ -1,0 +1,93 @@
+{
+  "id": "3880738",
+  "name": "材料管理",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "5838820",
+      "name": "统计",
+      "font_class": "tongji",
+      "unicode": "e878",
+      "unicode_decimal": 59512
+    },
+    {
+      "icon_id": "5387427",
+      "name": "退货出站",
+      "font_class": "tuihuochuzhan",
+      "unicode": "ead3",
+      "unicode_decimal": 60115
+    },
+    {
+      "icon_id": "5703306",
+      "name": "材料",
+      "font_class": "zhongguohangtiantubiaoheji-weizhuanlunkuo-",
+      "unicode": "e63c",
+      "unicode_decimal": 58940
+    },
+    {
+      "icon_id": "6400627",
+      "name": "密码（1）",
+      "font_class": "weibiaoti--",
+      "unicode": "e616",
+      "unicode_decimal": 58902
+    },
+    {
+      "icon_id": "18267967",
+      "name": "身份识别认证",
+      "font_class": "shenfenshibierenzheng",
+      "unicode": "e99a",
+      "unicode_decimal": 59802
+    },
+    {
+      "icon_id": "145704",
+      "name": "分类or广场or其他_填充",
+      "font_class": "fenleiorguangchangorqitatianchong",
+      "unicode": "e67d",
+      "unicode_decimal": 59005
+    },
+    {
+      "icon_id": "17523081",
+      "name": "用户管理-用户管理",
+      "font_class": "yonghuguanli-yonghuguanli",
+      "unicode": "e61a",
+      "unicode_decimal": 58906
+    },
+    {
+      "icon_id": "5055169",
+      "name": "仓库",
+      "font_class": "cangku",
+      "unicode": "e62d",
+      "unicode_decimal": 58925
+    },
+    {
+      "icon_id": "11913417",
+      "name": "check",
+      "font_class": "check",
+      "unicode": "e67b",
+      "unicode_decimal": 59003
+    },
+    {
+      "icon_id": "16563722",
+      "name": "换货入库、退货入库",
+      "font_class": "cangpeitubiao_huanhuorukutuihuoruku",
+      "unicode": "e60f",
+      "unicode_decimal": 58895
+    },
+    {
+      "icon_id": "19410758",
+      "name": "用户",
+      "font_class": "user",
+      "unicode": "e99e",
+      "unicode_decimal": 59806
+    },
+    {
+      "icon_id": "33177982",
+      "name": "出库",
+      "font_class": "chuku",
+      "unicode": "e6f9",
+      "unicode_decimal": 59129
+    }
+  ]
+}

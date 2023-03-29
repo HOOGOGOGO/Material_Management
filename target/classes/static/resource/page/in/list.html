@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../../plugins/element-ui/index.css"/>
+    <link rel="stylesheet" href="../../styles/common.css"/>
+    <link rel="stylesheet" href="../../styles/page.css"/>
+    <style>
+        #member-app .notAdmin::after {
+            border: 0 !important;
+
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container" id="member-app">
+    <div class="container">
+        <div class="tableBar">
+            <el-input v-model="input" placeholder="请输入入库单号" style="width: 250px" clearable @change="handleQuery">
+                <i slot="prefix" class="el-input__icon el-icon-search" style="cursor: pointer" @click="init"></i>
+            </el-input>
+            <el-date-picker v-model="oderTime"
+                            clearable
+                            value-format="yyyy-MM-dd HH:mm:ss"
+                            type="datetimerange"
+                            placeholder="选择日期"
+                            range-separator="至"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期"
+                            :default-time="['00:00:00', '23:59:59']"
+                            style="width: 400px;position: absolute;left: 300px"
+                            @change="handleQuery"
+            ></el-date-picker>
+
+            <el-button style="position: absolute;left: 1000px" type="danger" plain @click="submitHandle('批量')">批量提交审核</el-button>
+            <el-switch
+                    style="position: absolute;left: 730px;top: 25px"
+                    active-text="审核失败"
+                    v-model="checkfail"
+                    active-color="#13ce66"
+                    active-value="1"
+                    inactive-value="0"
+                    @change="init"
+            >
+            </el-switch>
+            <el-switch
+                    style="position: absolute;left: 730px;top: 55px"
+                    active-text="未提交"
+                    v-model="notsubmit"
+                    active-color="#13ce66"
+                    active-value="1"
+                    inactive-value="0"
+                    @change="init"
+            >
+            </el-switch>
+            <el-switch
+                    style="position: absolute;left: 858px;top: 25px"
+                    active-text="按时间显示"
+                    v-model="orderTime"
+                    active-color="#13ce66"
+                    active-value="1"
+                    inactive-value="0"
+                    @change="init"
+            >
+            </el-switch>
+            <el-button
+                    type="success"
+                    @click="addMaterialHandle(null,'add')"
+            >
+                + 添加入库单
+            </el-button>
+        </div>
+        <el-table
+                :header-cell-style="{ textAlign: 'center' }"
+                :cell-style="{ textAlign: 'center' }"
+                :data="tableData"
+                stripe
+                class="tableBox"
+                @selection-change="handleSelectionChange"
+        >
+            <el-table-column
+                    type="selection"
+            ></el-table-column>
+            <el-table-column
+                    width="180"
+                    prop="id"
+                    label="入库单号"
+            ></el-table-column>
+
+                <el-table-column
+                        width="200px"
+                        prop="informDescription"
+                        label="描述"
+                >
+                <template slot-scope="scope">
+                    <el-popover
+                            placement="top"
+                            title="入库单描述"
+                            width="300"
+                            trigger="hover"
+                            :content=scope.row.informDescription>
+                        <span slot="reference">轻碰查看入库单描述</span>
+                    </el-popover>
+                </template>
+            </el-table-column>
+
+            <el-table-column
+                    width="100px"
+                    prop="userName"
+                    label="提交人"
+            ></el-table-column>
+
+            <el-table-column
+                    width="120px"
+                    prop="urgentStatus"
+                    label="紧急状态">
+                <template slot-scope="scope">
+                    <span v-if="scope.row.urgentStatus==0">正常</span>
+                    <span v-if="scope.row.urgentStatus==1">紧急</span>
+                    <span v-if="scope.row.urgentStatus==2">非常紧急</span>
+                </template>
+            </el-table-column>
+
+            <el-table-column
+                    width="200px"
+                    prop="createTime"
+                    label="创建时间">
+            </el-table-column>
+
+            <el-table-column
+                    width="120px"
+                    prop="isSubmit"
+                    label="提交状态" >
+                <template slot-scope="scope">
+                    {{ scope.row.isSubmit == '0' ? '未提交' : '已提交' }}
+                </template>
+            </el-table-column>
+            <el-table-column
+                    width="120px"
+                    prop="checkStatus"
+                    label="审核状态" >
+                <template slot-scope="scope">
+                    <span v-if=" scope.row.checkStatus == '0'" style="color: red">未审核</span>
+                    <span v-if=" scope.row.checkStatus == '1'" style="color: red">审核成功</span>
+                    <span v-if=" scope.row.checkStatus == '2'" style="color: red">审核失败</span>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="操作"
+                    width="150"
+                    align="center"
+            >
+                <template slot-scope="scope" >
+                    <el-button
+                            v-if="scope.row.isSubmit==0"
+                            type="text"
+                            size="small"
+                            class="blueBug"
+                            @click="addMaterialHandle(scope.row.id,'edit')"
+                    >
+<!--                        只有未提交才能修改-->
+                      编辑
+                    </el-button>
+                    <el-button
+                            v-if="scope.row.isSubmit==1"
+                            type="text"
+                            size="small"
+                            class="blueBug"
+                            @click="addMaterialHandle(scope.row.id,'show')"
+                    >
+                        <!--                        只有未提交才能修改-->
+                        查看
+                    </el-button>
+                    <el-button
+                            v-if="scope.row.isSubmit==0"
+                            type="text"
+                            size="small"
+                            class="delBut non"
+                            @click="deleteInformMethod(scope.row.id)"
+                    >
+                        删除
+                    </el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                class="pageList"
+                :page-sizes="[8,12,15]"
+                :page-size="pageSize"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="counts"
+                :current-page.sync="page"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+        ></el-pagination>
+    </div>
+</div>
+<!-- 开发环境版本，包含了有帮助的命令行警告 -->
+<script src="../../plugins/vue/vue.js"></script>
+<script src="../../index0.html"></script>
+<!-- 引入组件库 -->
+<script src="../../plugins/element-ui/index.js"></script>
+<!-- 引入axios -->
+<script src="../../plugins/axios/axios.min.js"></script>
+<script src="../../js/request.js"></script>
+<script src="../../api/material.js"></script>
+<script src="../../api/inform.js"></script>
+<script src="../../js/validate.js"></script>
+<script src="../../js/index.js"></script>
+<script>
+    new Vue({
+        el: '#member-app',
+        data() {
+            return {
+                checkfail:'0',
+                notsubmit:'0',
+                orderTime:'0',
+                oderTime:'',
+                input2: '',
+                input: '',
+                counts: 0,
+                page: 1,
+                pageSize: 8,
+                tableData: [],
+                id: '',
+                status: '',
+            }
+        },
+        watch:{
+            oderTime (val) {
+                if (val && val.length >= 2) {
+                    this.beginTime = val[0]
+                    this.endTime = val[1]
+                } else {
+                    this.beginTime = ''
+                    this.endTime = ''
+                }
+            }
+        },
+        computed: {},
+        created() {
+            this.init()
+        },
+        mounted() {
+        },
+
+        methods: {
+            async init() {
+                const params = {
+                    page: this.page,
+                    pageSize: this.pageSize,
+                    id: this.input ? this.input : undefined,
+                    beginTime: this.beginTime?this.beginTime : undefined,
+                    endTime: this.endTime? this.endTime: undefined,
+                    checkStatus: this.checkfail==1? '审核失败':undefined,
+                    isSubmit: this.notsubmit==1? '未提交':undefined,
+                    orderTime:this.orderTime==1?'按时间排序':undefined
+                }
+                await getAllInform(params).then(res => {
+                    if (String(res.code) === '1') {
+                        this.tableData = res.data.records || []
+                        console.log(res.data.recoders)
+                        this.counts = res.data.total
+                        console.log(res.data.total)
+                        if (this.tableData.length > 0 && this.checkfail == 1) {
+                            this.$notify({
+                                title: '消息',
+                                message: '请处理审核失败的入库单',
+                                type: 'warning',
+                                position: 'top-left'
+                            });
+                        }
+                    }
+                }).catch(err => {
+                    this.$message.error('请求出错了：' + err)
+                })
+
+            },
+
+    handleQuery()
+    {
+        this.page = 1;
+        this.init();
+    }
+    ,
+    // 添加
+            addMaterialHandle(id,st)
+    {
+        if (st === 'add') {
+            window.parent.menuHandle({
+                id: '2',
+                url: '/resource/page/in/add.html?type=add',
+                name: '申请入库单'
+            }, true)
+        } else if(st==='show'){
+            window.parent.menuHandle({
+                id: '2',
+                url: '/resource/page/check/informShow.html?type=show&resource=in&id=' + id,
+                name: '查看入库单'
+            }, true)
+        }else if(st==='edit'){
+            window.parent.menuHandle({
+                id: '2',
+                url: '/resource/page/in/add.html?type=edit&id=' + id,
+                name: '修改入库单'
+            }, true)
+        }
+
+
+    }
+    ,
+    //状态修改
+    statusHandle(row)
+    {
+        this.id = row.id
+        this.status = row.status
+        this.$confirm('确认调整该材料的状态?', '提示', {
+            'confirmButtonText': '确定',
+            'cancelButtonText': '取消',
+            'type': 'warning'
+        }).then(() => {
+            enableOrDisableManager({'id': this.id, 'status': !this.status ? 1 : 0}).then(res => {
+                console.log('enableOrDisableEmployee', res)
+                if (String(res.code) === '1') {
+                    this.$message.success('材料状态更改成功！')
+                    this.handleQuery()
+                }
+            }).catch(err => {
+                this.$message.error('请求出错了：' + err)
+            })
+        })
+    }
+    ,
+    handleSizeChange(val)
+    {
+        this.pageSize = val
+        this.init()
+    }
+    ,
+    handleCurrentChange(val)
+    {
+        this.page = val
+        this.init()
+    }
+    ,
+    //多选框 , 全部操作
+    handleSelectionChange(val)
+    {
+        let checkArr = []
+        val.forEach((n) => {
+            checkArr.push(n.id)
+        })
+        this.checkList = checkArr
+    }
+    ,
+    // 批量提交
+            submitHandle (type, id) {
+                if (type === '批量'  ) {
+                    if (this.checkList.length === 0||this.checkList==null) {
+                        return this.$message.error('请选择提交对象')
+                    }
+                }
+                this.$confirm('确定提交入库单, 是否继续?', '确定入库', {
+                    'confirmButtonText': '确定',
+                    'cancelButtonText': '取消',
+                }).then(() => {
+
+                    submitInform(type === '批量' ? this.checkList.join(',') : id).then(res => {
+                        if (res.code === 1) {
+                            this.$message.success('提交成功！')
+                            this.handleQuery()
+                        } else {
+                            this.$message.error(res.msg || '操作失败')
+                        }
+                    }).catch(err => {
+                        this.$message.error('请求出错了：' + err)
+                    })
+                })
+            },
+            deleteInformMethod(id){
+                this.$confirm('是否删除入库单, 是否继续?', '删除入库单', {
+                    'confirmButtonText': '确定',
+                    'cancelButtonText': '取消',
+                }).then(() => {
+                    deleteInform( id).then(res => {
+                        if (res.code === 1) {
+                            this.$message.success('删除成功！')
+                            this.handleQuery()
+                        } else {
+                            this.$message.error(res.msg || '操作失败')
+                        }
+                    }).catch(err => {
+                        this.$message.error('请求出错了：' + err)
+                    })
+                })
+            }
+    }
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    namespace:名称空间
+-->
+
+<mapper namespace="com.rblue.mapper.CategoryDtoMapper">
+    <resultMap id="categoryDtoMap" type="com.rblue.dto.CategoryDto">
+        <result column="categoryId" property="categoryId"/>
+        <result column="categoryName" property="categoryName"/>
+        <result column="categoryDescription" property="categoryDescription"/>
+        <result column="categoryCreateTime" property="categoryCreateTime"/>
+        <result column="categoryUpdateTime" property="categoryUpdateTime"/>
+        <result column="categoryCreateUser" property="categoryCreateUser"/>
+        <result column="categoryUpdateUser" property="categoryUpdateUser"/>
+        <result column="categoryIsDeleted" property="categoryIsDeleted"/>
+    </resultMap>
+
+</mapper>

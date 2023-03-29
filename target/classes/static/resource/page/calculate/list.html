@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../../plugins/element-ui/index.css"/>
+    <link rel="stylesheet" href="../../styles/common.css"/>
+    <link rel="stylesheet" href="../../styles/page.css"/>
+    <style>
+        #member-app .notAdmin::after {
+            border: 0 !important;
+
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container" id="member-app">
+    <div class="container">
+
+
+        <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+        <div id="main" style=" z-index: 3;width: 1200px;height:600px; "></div>
+
+    </div>
+</div>
+<!-- 开发环境版本，包含了有帮助的命令行警告 -->
+<script src="../../plugins/vue/vue.js"></script>
+<script src="../../index1.html"></script>
+<!-- 引入组件库 -->
+<script src="../../plugins/element-ui/index.js"></script>
+<!-- 引入axios -->
+<script src="../../plugins/axios/axios.min.js"></script>
+<script src="../../js/request.js"></script>
+<script src="../../api/outform.js"></script>
+<script src="../../plugins/vue/echarts.js"></script>
+
+<script>
+    new Vue({
+        el: '#member-app',
+        data() {
+            return {
+                counts: 0,
+                page: 1,
+                pageSize: 8,
+                data:[],//所有分类名称
+                count:'',
+                name:[],//分类名称
+                available:[],//出库总量
+                back:[],//退料量
+                oderTime:'',//时间选择器
+            }
+        },
+        watch:{
+            oderTime (val) {
+                if (val && val.length >= 2) {
+                    this.beginTime = val[0]
+                    this.endTime = val[1]
+                } else {
+                    this.beginTime = ''
+                    this.endTime = ''
+                }
+            }
+        },
+        mounted() {
+            this.gragh()
+        },
+        methods: {
+
+            gragh(){
+// 基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(document.getElementById('main'));
+                // 异步加载数据
+                //从本地存储空间中获取参数信息
+                var calculateInfo = window.localStorage.getItem('calculateData')
+                calculateInfo=  JSON.parse(calculateInfo)
+                let params={
+                    ids:calculateInfo.ids,
+                    beginTime: calculateInfo.beginTime ? calculateInfo.beginTime : undefined,
+                    endTime: calculateInfo.endTime ? calculateInfo.endTime : undefined,
+                }
+                getAllOutFormStatistics(params).then(res=> {
+                    this.data=res.data
+                    this.name=this.data.materialNames
+                    this.available=this.data.sums
+                    this.back=this.data.backs
+                    this.count=this.data.count
+                    // 填入数据
+                    myChart.setOption({
+                        title: {
+                            text: '出库材料统计结果，统计数量共：'+this.count
+                        },
+                        tooltip: {},
+                        legend: {
+                            data: ['总出库量','总退料量']
+                        },
+                        xAxis: {
+                            data: this.name
+                        },
+                        yAxis: {},
+                        series: [{
+                            name: '总出库量',
+                            type: 'bar',
+                            data: this.available
+                        },{
+                            name: '总退料量',
+                            type: 'bar',
+                            data: this.back
+                        },
+                        ]
+                    });
+
+
+                });
+
+            }
+
+
+        }
+    })
+
+
+</script>
+</body>
+</html>

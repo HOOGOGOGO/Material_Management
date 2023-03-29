@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="../../plugins/element-ui/index.css" />
+  <link rel="stylesheet" href="../../styles/common.css" />
+  <link rel="stylesheet" href="../../styles/page.css" />
+</head>
+<body>
+<div class="addBrand-container" id="member-add-app">
+  <div class="container">
+    <el-form
+            ref="ruleForm"
+            :model="ruleForm"
+            :rules="rules"
+            :inline="false"
+            label-width="180px"
+            class="demo-ruleForm"
+    >
+      <el-form-item
+              label="材料名称:"
+              prop="name">
+        <el-input
+                v-model="ruleForm.name"
+                placeholder="请输入材料名称"
+                maxlength="30"/>
+      </el-form-item>
+      <!--            $forceUpdate()重新(rander)渲染虚拟DOM,-->
+      <el-form-item prop="ruleForm.category.name" label="材料分类选择:">
+        <el-select v-model="ruleForm.categoryId" placeholder="请选择材料分类" @change="$forceUpdate()">
+          <el-option v-for="(item, index) in setMealList" :key="index" :label="item.name" :value="item.id" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="材料规格:" prop="specification">
+        <el-input v-model="ruleForm.specification" placeholder="请输入材料规格" maxlength="64"/>
+      </el-form-item>
+
+      <el-form-item label="材料单位:" prop="unit">
+        <el-input v-model="ruleForm.unit" placeholder="请输入材料单位" maxlength="20"/>
+      </el-form-item>
+
+      <el-form-item label="材料总量:" prop="available">
+        <el-input v-model="ruleForm.available" placeholder="请输入材料总量"  type="number" maxlength="10"/>
+      </el-form-item>
+
+      <el-form-item label="材料单价:" prop="price">
+        <el-input v-model="ruleForm.price" placeholder="请输入材料单价" maxlength="12" type="number"/>
+      </el-form-item>
+
+      <el-form-item label="存储要求：" prop="storageDemand" >
+        <el-input v-model="ruleForm.storageDemand"
+                  type="textarea" :rows="5"
+                  placeholder="请输入存储要求"
+                  maxlength="512"/>
+      </el-form-item>
+
+      <el-form-item label="仓库："  prop="warehouse.name" v-if="type=='storage'">
+        <el-select v-model="ruleForm.warehouseId" placeholder="请选择仓库" @change="$forceUpdate()">
+          <el-option v-for="(item, index) in setWarehouseList" :key="index" :label="item.name" :value="item.id" />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="货架：" prop="shelf" v-if="type=='storage'">
+        <el-input v-model="ruleForm.shelf"
+                  type="textarea" :rows="5"
+                  placeholder="请输入所在货架"/>
+      </el-form-item>
+
+      <div class="subBox address">
+        <el-form-item>
+          <el-button  @click="goBack()">
+            取消
+          </el-button>
+          <el-button
+                  type="primary"
+                  @click="addMaterialMethod('ruleForm', false)"
+          >
+            保存
+          </el-button>
+          <el-button
+                  v-if="actionType == 'add'"
+                  type="primary"
+                  class="continue"
+                  @click="addMaterialMethod('ruleForm', true)"
+          >
+            保存并继续添加
+          </el-button>
+        </el-form-item>
+      </div>
+    </el-form>
+
+
+  </div>
+</div>
+<!-- 开发环境版本，包含了有帮助的命令行警告 -->
+<script src="../../plugins/vue/vue.js"></script>
+<!-- 引入组件库 -->
+<script src="../../plugins/element-ui/index.js"></script>
+<!-- 引入axios -->
+<script src="../../plugins/axios/axios.min.js"></script>
+<script src="../../js/request.js"></script>
+<script src="../../api/material.js"></script>
+<script src="../../api/storage.js"></script>
+<script src="../../js/validate.js"></script>
+<script src="../../js/index.js"></script>
+<script>
+  new Vue({
+    el: '#member-add-app',
+    data() {
+      return {
+        setMealList: [],
+        id: '',
+        actionType : '',
+        type:'',//记录当前是否是仓库管理员修改材料信息
+        ruleForm : {
+          name: '',
+          category: '',
+          categoryDto:'',
+          specification: '',
+          unit: '',
+          available: '',
+          price:'',
+          storageDemand:'',
+          createTime:'',
+          setWarehouseList: [],//仓库列表
+        },
+      }
+    },
+    computed: {
+      rules () {
+        return {
+          name: [{ required: true, message: '请输入材料名称', trigger: 'blur' }],
+          categoryId: [{ required: true, message: '请输入材料分类', trigger: 'blur' }],
+          specification: [{ required: true, message: '请输入材料规格', trigger: 'blur' }],
+          unit: [{ required: true, message: '请输入材料单位', trigger: 'blur' }],
+          available: [{ required: true, message: '请输入材料总量', trigger: 'blur' }],
+          price:[{ required: true, message: '请输入材料单价', trigger: 'blur' }],
+          storageDemand:[{ required: true, message: '请输入存储要求', trigger: 'blur' }],
+          createTime:[{ required: true, message: '请输入到货时间', trigger: 'blur' }]
+
+        }
+      }
+    },
+    created() {
+      this.getMaterialTypeList()
+      this.id = requestUrlParam('id')
+      this.actionType = this.id ? 'edit' : 'add'
+      this.type=requestUrlParam('type')
+      if (this.id) {
+        this.init()
+        this.getWarehouseList()
+      }
+    },
+    mounted() {
+    },
+    methods: {
+      async init () {
+        queryMaterialById(this.id).then(res => {
+          console.log(res)
+          if (String(res.code) === '1') {
+            console.log(res.data)
+            this.ruleForm = res.data
+          } else {
+            this.$message.error(res.msg || '操作失败')
+          }
+        })
+      },
+      // 获取材料分类
+      getMaterialTypeList() {
+        getMaterialList().then((res) => {
+          if (res.code === 1) {
+            console.log(res.data);
+            //通过 map 方法处理返回数据，筛选出想要的数据。
+            this.setMealList = res.data.map((obj) => ({ ...obj, categoryId: obj.id }))
+
+          } else {
+            this.$message.error(res.msg || '操作失败')
+          }
+
+
+        })
+      },
+      // 获取仓库分类
+      getWarehouseList() {
+        getWarehouse().then(res => {
+          if (res.code === 1) {
+            //通过 map 方法处理返回数据，筛选出想要的数据。
+            this.setWarehouseList = res.data.map((obj) => ({...obj, warehouseId: obj.id}))
+          } else {
+            this.$message.error(res.msg)
+          }
+        })
+      },
+      addMaterialMethod (formName, st) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            if (this.actionType === 'add') {
+              const params = {
+                ...this.ruleForm,
+              }
+              addMaterial(params).then(res => {
+                if (res.code === 1) {
+                  this.$message.success('材料添加成功！')
+                  if (!st) {
+                    this.goBack();
+                  } else {
+                    this.ruleForm = {
+                      name: '',
+                      address: '',
+                      area: '',
+                      managerId: '',
+                      description:'',
+                    }
+                  }
+                } else {
+                  this.$message.error(res.msg || '操作失败')
+                }
+              }).catch(err => {
+                this.$message.error('请求出错了：' + err)
+              })
+            } else {
+              const params = {
+                ...this.ruleForm,
+              }
+              editMaterial(params).then(res => {
+                if (res.code === 1) {
+                  this.$message.success('材料信息修改成功！')
+                  this.goBack()
+                } else {
+                  this.$message.error(res.msg || '操作失败')
+                }
+              }).catch(err => {
+                this.$message.error('请求出错了：' + err)
+              })
+            }
+          } else {
+            console.log('error submit!!')
+            return false
+          }
+        })
+      },
+      goBack(){
+        if(this.type!='storage'){
+          window.parent.menuHandle({
+            id: '1',
+            name: '材料管理',
+            url: 'page/material/list.html',
+            icon: 'icon-zhongguohangtiantubiaoheji-weizhuanlunkuo-'
+          },false)
+        }else{
+          window.parent.menuHandle({
+            id: '2',
+            name: '材料管理',
+            url: 'page/storage/materialList.html',
+            icon: 'icon-zhongguohangtiantubiaoheji-weizhuanlunkuo-'
+          },false)
+        }
+
+      }
+    }
+  })
+</script>
+</body>
+</html>

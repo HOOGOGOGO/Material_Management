@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="material_managerment:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>material_managerment</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="material_managerment-2.7.8.war">
+      <element id="artifact" artifact-name="material_managerment:war exploded" />
+    </root>
+  </artifact>
+</component>

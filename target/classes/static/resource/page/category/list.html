@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../../plugins/element-ui/index.css"/>
+    <link rel="stylesheet" href="../../styles/common.css"/>
+    <link rel="stylesheet" href="../../styles/page.css"/>
+    <style>
+        .description {
+            display: -webkit-box;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+
+
+    </style>
+</head>
+<body>
+<div class="dashboard-container" id="category-app">
+    <div class="container">
+        <div class="tableBar">
+            <el-input
+                    v-model="input"
+                    placeholder="请输入分类名称"
+                    style="width: 250px"
+                    clearable
+                    @keyup.enter.native="handleQuery">
+                <i
+                        slot="prefix"
+                        class="el-input__icon el-icon-search"
+                        style="cursor: pointer"
+                        @click="handleQuery"></i>
+            </el-input>
+            <el-button style="position: absolute;left: 1000px" type="danger" plain @click="deleteHandle('批量')">批量删除</el-button>
+            <el-button
+                    type="primary"
+                    @click="addClass('add')">
+                + 新增材料分类
+            </el-button>
+        </div>
+
+        <el-table
+                :data="tableData"
+                stripe
+                class="tableBox"
+                @selection-change="handleSelectionChange"
+        >
+            <el-table-column
+                type="selection"
+               ></el-table-column>
+
+            <el-table-column
+                    prop="name"
+                    label="分类名称">
+            </el-table-column>
+
+            <el-table-column
+                    prop="description"
+                    label="材料分类描述">
+                <template slot-scope="scope">
+                        <el-popover
+                                placement="top"
+                                title="描述"
+                                width="300"
+                                trigger="hover"
+                                :content=scope.row.description>
+                            <span slot="reference">轻碰查看描述</span>
+                        </el-popover>
+                </template>
+            </el-table-column>
+
+            <el-table-column
+                    prop="updateTime"
+                    label="操作时间">
+                <template slot-scope="scope">
+                    {{scope.row.updateTime}}
+                </template>
+            </el-table-column>
+
+
+            <el-table-column
+                    label="操作"
+                    width="160"
+                    align="center"
+            >
+                <template slot-scope="scope">
+                    <el-button
+                            type="text"
+                            size="small"
+                            class="blueBug"
+                            @click="editHandle(scope.row)"
+                    >
+                        修改
+                    </el-button>
+                    <el-button
+                            type="text"
+                            size="small"
+                            class="delBut non"
+                            @click="deleteHandle('单删',scope.row.id)">
+                        删除
+                    </el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                class="pageList"
+                :page-sizes="[8, 10, 12]"
+                :page-size="pageSize"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="counts"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+        ></el-pagination>
+    </div>
+    <el-dialog
+            :close-on-click-modal="false"
+            :title="classData.title"
+            :visible.sync="classData.dialogVisible"
+            width="30%"
+            :show-close="false"
+    >
+        <el-form
+                ref="classData"
+                :model="classData"
+                :rules="categoryRules"
+                class="demo-form-inline"
+                label-width="100px"
+        >
+            <el-form-item label="分类名称：" prop="name">
+                <el-input
+
+                        v-model="classData.name"
+                        placeholder="请输入分类名称"
+                        maxlength="14"
+                />
+            </el-form-item>
+            <el-form-item label="描述：" prop="description">
+                <el-input
+                        type="textarea"
+                        :rows="10"
+                        v-model="classData.description"
+                        placeholder="请输入描述"
+                        />
+            </el-form-item>
+        </el-form>
+        <span
+                slot="footer"
+                class="dialog-footer"
+        >
+        <el-button
+                size="medium"
+                @click="handleClose('classData')"
+        >取 消</el-button>
+        <el-button
+                type="primary"
+                size="medium"
+                @click="submitForm('classData','add',true)"
+        >确 定</el-button>
+        <el-button
+                v-if="action != 'edit'"
+                type="primary"
+                size="medium"
+                class="continue"
+                @click="submitForm('classData','go',true)"
+        > 保存并继续添加 </el-button>
+      </span>
+
+    </el-dialog>
+</div>
+<!-- 开发环境版本，包含了有帮助的命令行警告 -->
+<script src="../../plugins/vue/vue.js"></script>
+<!-- 引入组件库 -->
+<script src="../../plugins/element-ui/index.js"></script>
+<!-- 引入axios -->
+<script src="../../plugins/axios/axios.min.js"></script>
+<script src="../../js/request.js"></script>
+<script src="../../api/category.js"></script>
+<script>
+    new Vue({
+        el: '#category-app',
+        data() {
+            return {
+                input: '',
+                action: '',
+                counts: 0,
+                page: 1,
+                pageSize: 8,
+                tableData: [],
+                checkList: [],
+                classData: {
+                    'title': '添加材料分类',
+                    'dialogVisible': false,
+                    'name': '',
+                    'description': ''
+                }
+            }
+        },
+        computed: {
+            categoryRules(){
+                return{
+                    name:[{required:true,message:"请输入分类名称",trigger:'blur' }],
+                    description:[{required:true,message:"请输入分类描述",trigger:'blur' }]
+                }
+
+            }
+
+        },
+        created() {
+            this.init()
+        },
+        mounted() {
+        },
+        methods: {
+            async init() {
+                const params = {
+                    page: this.page,
+                    pageSize: this.pageSize,
+                    name: this.input ? this.input : undefined
+                }
+                await getCategoryPage(params).then(res => {
+                    if (String(res.code) === '1') {
+                        this.tableData = res.data.records
+                        this.counts = Number(res.data.total)
+                    } else {
+                        this.$message.error(res.msg || '操作失败')
+                    }
+                }).catch(err => {
+                    this.$message.error('请求出错了：' + err)
+                })
+            },
+            handleQuery() {
+                this.page = 1;
+                this.init();
+            },
+            // 添加
+            addClass(st) {
+                this.action = 'add'
+                this.classData.name = ''
+                this.classData.description = ''
+                this.classData.dialogVisible = true
+            },
+            editHandle(dat) {
+                this.classData.title = '修改材料分类'
+                this.action = 'edit'
+                this.classData.name = dat.name
+                this.classData.description = dat.description
+                this.classData.id = dat.id
+                this.classData.dialogVisible = true
+            },
+            // 关闭弹窗
+            handleClose(formName) {
+
+                this.classData.dialogVisible = false
+                //重置表单
+                this.resetForm(formName)
+            },
+            //重置表单
+            resetForm(formName) {
+               this.$refs[formName].resetFields();
+            },
+            //数据提交
+            submitForm(formName,st) {
+                this.$refs[formName].validate((valid)=>{
+                    if(valid){
+                        const classData = this.classData
+                        const valid = (classData.name === 0 || classData.name)//name不能为空
+                        if (this.action === 'add') {
+                            if (valid) {
+                                addCategory({'name': classData.name, 'description': classData.description}).then(res => {
+                                    console.log(res)
+                                    if (res.code === 1) {
+                                        this.$message.success('分类添加成功！')
+                                        if (st=='add') {
+                                            this.classData.dialogVisible = false
+                                        } else {
+                                            this.classData.name = ''
+                                            this.classData.description = ''
+                                        }
+                                        this.handleQuery()
+                                    } else {
+                                        this.$message.error(res.msg || '操作失败')
+                                    }
+                                }).catch(err => {
+                                    this.$message.error('请求出错了：' + err)
+                                })
+
+                            } else {
+                                this.$message.error('请输入分类名称')
+                            }
+                        } else if (valid) {
+                            editCategory({
+                                'id': this.classData.id,
+                                'name': this.classData.name,
+                                'description': classData.description
+                            }).then(res => {
+                                if (res.code === 1) {
+                                    this.$message.success('分类修改成功！')
+                                    this.classData.dialogVisible = false
+                                    this.handleQuery()
+                                } else {
+                                    this.$message.error(res.msg || '操作失败')
+                                }
+                            }).catch(err => {
+                                this.$message.error('请求出错了：' + err)
+                            })
+                        }
+                    }else{
+                        console.log('error submit!!')
+                        return false
+                    }
+                })
+
+            },
+            handleSizeChange(val) {
+                this.pageSize = val
+                this.init()
+            },
+            handleCurrentChange(val) {
+                this.page = val
+                this.init()
+            },
+            //多选框 , 全部操作
+            handleSelectionChange (val){
+                let checkArr = []
+                val.forEach((n) => {
+                    checkArr.push(n.id)
+                })
+                this.checkList = checkArr
+            },
+            // 批量删除，或者单个删除
+            deleteHandle (type, id) {
+                if (type === '批量'  ) {
+                    if (this.checkList.length === 0) {
+                        return this.$message.error('请选择删除对象')
+                    }
+                }
+                this.$confirm('确定删除该分类, 是否继续?', '确定删除', {
+                    'confirmButtonText': '确定',
+                    'cancelButtonText': '取消',
+                }).then(() => {
+                    deleteCategory(type === '批量' ? this.checkList.join(',') : id).then(res => {
+                        if (res.code === 1) {
+                            this.$message.success('删除成功！')
+                            this.handleQuery()
+                        } else {
+                            this.$message.error(res.msg || '操作失败')
+                        }
+                    }).catch(err => {
+                        this.$message.error('请求出错了：' + err)
+                    })
+                })
+            }
+        }
+
+    })
+</script>
+</body>
+</html>

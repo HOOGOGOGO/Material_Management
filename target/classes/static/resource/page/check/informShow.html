@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Document</title>
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="../../plugins/element-ui/index.css"/>
+  <link rel="stylesheet" href="../../styles/common.css"/>
+  <link rel="stylesheet" href="../../styles/page.css"/>
+  <style>
+    .addDish .el-input {
+      width: 130px;
+    }
+
+    .addDish .el-input-number__increase {
+      border-left: solid 1px #FFE1CA;
+      background: #fff3ea;
+    }
+
+    .addDish .el-input-number__decrease {
+      border-right: solid 1px #FFE1CA;
+      background: #fff3ea;
+    }
+
+    .addDish input {
+      border: 1px solid #ffe1ca;
+    }
+
+    .addDish .table {
+      border: solid 1px #EBEEF5;
+      border-radius: 3px;
+    }
+
+    .addDish .table th {
+      padding: 5px 0;
+    }
+
+    .addDish .table td {
+      padding: 7px 0;
+    }
+
+    .addDishList .seachDish {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+    }
+
+    .addDishList .el-dialog__body {
+      padding: 0;
+      border-bottom: solid 1px #ccc;
+    }
+
+    .addDishList .el-dialog__footer {
+      padding-top: 27px;
+    }
+
+    .addDish {
+      width: 777px;
+    }
+
+    .addDish .addBut {
+      background: #ffc200;
+      display: inline-block;
+      padding: 0px 20px;
+      border-radius: 3px;
+      line-height: 40px;
+      cursor: pointer;
+      border-radius: 4px;
+      color: #333333;
+      font-weight: 500;
+    }
+
+    .addDish .content {
+      background: #fafafb;
+      padding: 20px;
+      border: solid 1px #ccc;
+      border-radius: 3px;
+    }
+
+    .addDishCon {
+      padding: 0 20px;
+      display: flex;
+      line-height: 40px;
+    }
+
+    .addDishCon .leftCont {
+      display: flex;
+      border-right: solid 2px #E4E7ED;
+      width: 60%;
+      padding: 15px;
+    }
+
+    /*材料种类长度*/
+    .addDishCon .leftCont .tabBut {
+      width: 100px;
+    }
+
+    .addDishCon .leftCont .tabBut span {
+      display: block;
+      text-align: center;
+      border-right: solid 2px #f4f4f4;
+      cursor: pointer;
+    }
+
+    .addDishCon .leftCont .act {
+      border-color: #fc0c0c !important;
+      color: #f70707 !important;
+    }
+
+    .addDishCon .leftCont .tabList {
+      flex: 1;
+      padding: 0px;
+    }
+
+    .addDishCon .leftCont .tabList .table {
+      border: solid 1px #f4f4f4;
+      border-bottom: solid 1px #f4f4f4;
+    }
+
+    .addDishCon .leftCont .tabList .table .items {
+      border-bottom: solid 1px #f4f4f4;
+      padding: 0 10px;
+      display: flex;
+    }
+
+    .addDishCon .leftCont .tabList .table .items .el-checkbox, .addDishCon .leftCont .tabList .table .items .el-checkbox__label {
+      width: 100%;
+    }
+
+    .addDishCon .leftCont .tabList .table .items .item {
+      display: flex;
+      padding-right: 0px;
+    }
+
+    .addDishCon .leftCont .tabList .table .items .item span {
+      display: inline-block;
+      text-align: center;
+      flex: 2;
+    }
+
+    .addDishCon .ritCont {
+      width: 40%;
+      padding: 0 5px;
+    }
+
+    .addDishCon .ritCont .item {
+      box-shadow: 0px 1px 4px 3px rgba(0, 0, 0, 0.03);
+      display: flex;
+      text-align: center;
+      padding: 0 10px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      color: #818693;
+
+    }
+
+    .addDishCon .ritCont .item span:first-child {
+      text-align: left;
+
+      color: #20232A;
+      width: 80px;
+    }
+
+    .addDishCon .ritCont .item .specification {
+      display: inline-block;
+      flex: 1;
+    }
+
+    .addDishCon .ritCont .item .del {
+      cursor: pointer;
+    }
+
+    .addDishCon .ritCont .item .del img {
+      position: relative;
+      top: 5px;
+      width: 20px;
+    }
+
+    .addDishCon .el-checkbox__label {
+      width: 100%;
+    }
+
+    #combo-add-app .setmaterial .el-form-item__label::before {
+      content: '*';
+      color: #F56C6C;
+      margin-right: 4px;
+    }
+
+    #combo-add-app .uploadImg .el-form-item__label::before {
+      content: '*';
+      color: #F56C6C;
+      margin-right: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="addBrand-container" id="combo-add-app">
+  <div class="container">
+    <el-form
+            ref="ruleForm"
+            :model="ruleForm"
+            :rules="rules"
+            :inline="true"
+            label-width="180px"
+            class="demo-ruleForm"
+    >
+      <div>
+        <el-form-item label="填写人:" v-if="this.actionType=='add'">
+          <el-input  v-model="this.user.name"  :disabled="true"/>
+        </el-form-item>
+        <el-form-item label="填写人:" v-if="this.actionType !='add'">
+          <el-input  v-model="ruleForm.userName"  :disabled="true"/>
+        </el-form-item>
+
+        <el-form-item label="紧急状态:" prop="urgentStatus" v-if="this.actionType !='show'">
+          <el-select v-model="ruleForm.urgentStatus" clearable placeholder="请选择紧急程度">
+            <el-option label="正常" value="0"></el-option>
+            <el-option label="紧急" value="1"></el-option>
+            <el-option label="非常紧急" value="2"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="紧急状态:" prop="urgentStatus" v-if="this.actionType=='show'">
+          <el-input v-model="ruleForm.urgentStatus"  :disabled="true"/>
+        </el-form-item>
+      </div>
+
+      <div>
+        <el-form-item label="选择入库材料:" class="setmaterial">
+          <el-form-item>
+            <div class="addDish">
+              <div v-if="materialTable.length != 0" class="content">
+                <div class="addBut" style="margin-bottom: 20px" @click="openAddDish" v-if="this.actionType!='show'">+ 添加入库材料</div>
+                <div class="table" >
+                  <el-table :data="materialTable" style="width: 100%" align="center">
+                    <el-table-column prop="name" label="材料名称" width="180"
+                                     align="center"></el-table-column>
+                    <el-table-column prop="specification" label="材料规格"
+                                     width="200"  align="center"></el-table-column>
+                    <el-table-column prop="unit" label="材料单位" width="110" align="center"></el-table-column>
+                    <el-table-column prop="available" label="入库量" width="110"  align="center" >
+                    </el-table-column>
+                  </el-table>
+                </div>
+              </div>
+            </div>
+          </el-form-item>
+        </el-form-item>
+      </div>
+      <div class="address">
+        <el-form-item label="入库单描述:" v-if="this.actionType!='show'">
+          <el-input v-model="ruleForm.informDescription" type="textarea" :rows="5" placeholder="入库单描述,(最多500字)"
+                    maxlength="500"/>
+        </el-form-item>
+        <el-form-item label="入库单描述:" v-if="this.actionType=='show'">
+          <el-input v-model="ruleForm.informDescription" type="textarea" :rows="5" placeholder="入库单描述,(最多500字)"
+                    maxlength="500" :disabled="true"/>
+        </el-form-item>
+          <el-form-item label="审核结果:">
+            <el-input v-model="ruleForm.checkDescription" type="textarea" :rows="5" placeholder="审核单描述,(最多500字)"
+                      maxlength="500" :disabled="true"/>
+          </el-form-item>
+      </div>
+      <div class="subBox address">
+        <el-form-item>
+          <el-button @click="goBack()"> 取消</el-button>
+          <el-button v-if="this.actionType != 'show'" type="primary" @click="submitForm('ruleForm', false)"> 保存</el-button>
+          <el-button
+                  v-if="this.actionType == 'add'"
+                  type="primary"
+                  class="continue"
+                  @click="submitForm('ruleForm', true)"
+          >
+            保存并继续填写入库单
+          </el-button>
+        </el-form-item>
+      </div>
+    </el-form>
+  </div>
+
+</div>
+<!-- 开发环境版本，包含了有帮助的命令行警告 -->
+<script src="../../plugins/vue/vue.js"></script>
+<script src="../../index0.html"></script>
+
+<!-- 引入组件库 -->
+<script src="../../plugins/element-ui/index.js"></script>
+<!-- 引入axios -->
+<script src="../../plugins/axios/axios.min.js"></script>
+<script src="../../js/request.js"></script>
+<script src="../../api/material.js"></script>
+<script src="../../api/inform.js"></script>
+<script src="../../js/validate.js"></script>
+<script src="../../js/index.js"></script>
+<script>
+  new Vue({
+    el: '#combo-add-app',
+    data() {
+      return {
+        resource:'',
+        user:'',
+        id: '',
+        actionType: '',
+        value: '',
+        setMealList: [],
+        seachKey: '',
+        dishList: [],
+        imageUrl: '',
+        actionType: '',
+        materialTable: [],
+        dialogVisible: false,
+        checkList: [],
+        ruleForm: {
+          userName:'',
+          urgentStatus:'',
+          materials:[],
+          informDescription: ''
+        },
+        materialType: [],
+        materialAddList: [],
+        dishListCache: [],
+        keyInd: 0,
+        searchValue: '',
+        checkedList: []//绑定所选菜品
+      }
+    },
+    computed: {
+      rules() {
+        return {
+          urgentStatus: {
+            required: true,
+            message: '请选择紧急状态',
+            trigger: 'change',
+          },
+
+        }
+      },
+
+    },
+    watch:{//监听器，seachkey是否发生变化
+      seachKey(value){
+        if (value.trim()){
+          this.getMaterialForName(this.seachKey)
+        }
+      },
+      checkList(value){ //监听是否发生变化
+        this.checkedList = value
+      }
+    },
+    created() {
+      this.id = requestUrlParam('id')
+      this.actionType = requestUrlParam('type')
+      this.resource = requestUrlParam('resource')
+        this.init()
+    },
+    mounted() {
+    },
+    methods: {
+      async init() {
+        queryInformById(this.id).then((res) => {
+          if (res.code === 1) {
+            this.ruleForm=res.data
+            if(this.ruleForm.urgentStatus===0){
+              this.ruleForm.urgentStatus='正常'
+            } else if(this.ruleForm.urgentStatus===1){
+              this.ruleForm.urgentStatus='紧急'
+            }else{
+              this.ruleForm.urgentStatus='非常紧急'
+            }
+            this.materialTable=res.data.materials;
+          } else {
+            this.$message.error(res.msg || '操作失败')
+          }
+        })
+      },
+      // 添加材料按钮
+      openAddDish() {
+        this.seachKey = ''
+        this.dialogVisible = true
+        //搜索条件清空，菜品重新查询，菜品类别选第一个重新查询
+        this.value = ''
+        this.keyInd = 0
+        if(this.materialTable.length==0) {
+          this.getMaterialList(this.materialType[0].id)//没有选择材料就每次查询第一个分类的材料数据
+        }
+
+      },
+      seachHandle() {
+        this.seachKey = this.value
+      },
+
+      // 取消添加入库材料
+      handleClose(done) {
+        this.dialogVisible = false
+        if(this.materialTable.length==0){
+          this.checkList=[];
+        }
+      },
+
+      goBack() {
+        if(this.resource=='check'){
+          window.parent.menuHandle(
+                  {
+                    id: '1',
+                    name: '入库审核',
+                    url: 'page/check/checkinform.html',
+                    icon: 'icon-cangpeitubiao_huanhuorukutuihuoruku'
+                  },
+                  false
+          )}else if(this.resource=='in'){
+          window.parent.menuHandle(
+                  {
+                    id: '2',
+                    name: '入库管理',
+                    url: 'page/in/list.html',
+                    icon: 'icon-cangpeitubiao_huanhuorukutuihuoruku'
+                  },
+                  false
+          )}
+      },
+
+    },
+  })
+</script>
+</body>
+</html>
