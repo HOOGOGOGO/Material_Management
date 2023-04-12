@@ -57,7 +57,7 @@ public class ManagerController {
             return R.error("登陆失败，账号已禁用");
         }
         //6、登陆成功
-        request.getSession().setAttribute("manager", man.getId());
+        request.getSession().setAttribute("manager", man);
         return R.success(man);
     }
 

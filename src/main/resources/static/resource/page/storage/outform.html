@@ -48,9 +48,9 @@
             >
             </el-switch>
             <el-switch
-                    style="position: absolute;left: 1030px;top: 55px"
+                    style="position: absolute;left: 980px;top: 55px"
                     active-text="按时间显示"
-                    v-model="orderByTime"
+                    v-model="orderTime"
                     active-color="#13ce66"
                     active-value="1"
                     inactive-value="0"
@@ -199,7 +199,7 @@
         data() {
             return {
                 allbutton:'0',//是否显示全部的按钮
-                orderByTime:'0',
+                orderTime:'0',
                 oderTime:'',
                 haveBack:'0',//是否显示退料单
                 input2: '',
@@ -247,7 +247,7 @@
                     endTime: this.endTime ? this.endTime : undefined,
                     checkStatus: '已审核',
                     outStatus: this.allbutton==0? '未出库':undefined,
-                    orderByTime: this.orderByTime==1? '按时间排序':undefined,
+                    orderTime: this.orderTime == 1? '按时间排序':undefined,
                     haveBack:this.haveBack==1? '显示退料':undefined
                 }
                 await getAllOutformCheck(params).then(res => {

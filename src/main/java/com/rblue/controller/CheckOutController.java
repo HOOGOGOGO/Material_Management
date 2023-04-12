@@ -38,7 +38,7 @@ public class CheckOutController {
 
     @GetMapping("/page")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    public R<Page> getAllInform(Long id, int page, int pageSize , String beginTime, String endTime,String checkStatus,String outStatus,String orderByTime,String haveBack) {
+    public R<Page> getAllInform(Long id, int page, int pageSize , String beginTime, String endTime,String checkStatus,String outStatus,String orderTime,String haveBack) {
         //创建分页构造
         Page<Outform> outformPage = new Page<>(page, pageSize);
         Page<OutformDto> dtoPage = new Page<>();
@@ -66,8 +66,8 @@ public class CheckOutController {
         if(haveBack!=null){
             lqw.eq(Outform::getBackStatus,1);
         }
-       //添加排序条件,默认按紧急程度排序
-        if(orderByTime==null){
+        //添加排序条件,默认按紧急程度排序
+        if(orderTime==null){
             lqw.orderByDesc(Outform::getUrgentStatus);
         }else{ //按时间降序
             lqw.orderByDesc(Outform::getCreateTime);

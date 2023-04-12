@@ -41,7 +41,7 @@ public class CheckInController {
 
     @GetMapping("/page")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    public R<Page> getAllInform(Long id, int page, int pageSize , String beginTime, String endTime,String checkStatus,String storageStatus,String orderByTime) {
+    public R<Page> getAllInform(Long id, int page, int pageSize , String beginTime, String endTime,String checkStatus,String storageStatus,String orderTime) {
         //创建分页构造
         Page<Inform> informPage = new Page<>(page, pageSize);
         Page<InformDto> dtoPage = new Page<>();
@@ -66,7 +66,7 @@ public class CheckInController {
             lqw.gt(Inform::getCreateTime,bTime).lt(Inform::getCreateTime,eTime);
         }
         //添加排序条件,默认按紧急程度排序
-        if(orderByTime==null){
+        if(orderTime==null){
             lqw.orderByDesc(Inform::getUrgentStatus);
         }else{ //按时间降序
             lqw.orderByDesc(Inform::getCreateTime);

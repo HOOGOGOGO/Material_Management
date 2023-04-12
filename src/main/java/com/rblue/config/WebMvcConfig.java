@@ -14,10 +14,10 @@ import java.util.List;
 @Configuration
 public class  WebMvcConfig implements WebMvcConfigurer {
 
-    @Autowired
-    public LoginHandlerInterceptor getInterceptor(){
-        return  new LoginHandlerInterceptor();
-    }
+//    @Autowired
+//    public LoginHandlerInterceptor getInterceptor(){
+//        return  new LoginHandlerInterceptor();
+//    }
 
     /**
      * 添加全局拦截路径，以及排除路径
@@ -25,8 +25,9 @@ public class  WebMvcConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(getInterceptor()).addPathPatterns("/**").addPathPatterns()
-                .excludePathPatterns("/resource/**","/user/login");
+        System.out.println("全局拦截器");
+        registry.addInterceptor(new LoginHandlerInterceptor()).addPathPatterns("/**")
+                .excludePathPatterns("/resource/page/login/**","/resource/favicon.ico","/resource/styles/**","/resource/plugins/**","/resource/js/**","/resource/images/**","/resource/api/**","/user/login");
     }
 
     /**

@@ -4,28 +4,23 @@ import com.rblue.common.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 
 /**
  * 全局异常处理
  */
-@ControllerAdvice(annotations = {RestController.class, Controller.class, Component.class})
-@ResponseBody
-@Slf4j
+@RestControllerAdvice(annotations = {RestController.class, Controller.class, Component.class})
 public class GlobalExceptionHandler {
 
     /**
      * 异常处理方法
      * @return
      */
-    @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
+    @ExceptionHandler(value = SQLIntegrityConstraintViolationException.class)
     public R<String> exceptionHandler(SQLIntegrityConstraintViolationException ex){
-        log.error(ex.getMessage());
+       // log.error(ex.getMessage());
 
         if(ex.getMessage().contains("Duplicate entry")){
             String[] split = ex.getMessage().split(" ");
@@ -39,9 +34,10 @@ public class GlobalExceptionHandler {
      * 拦截器异常处理方法
      * @return
      */
-    @ExceptionHandler(InterceptorException.class)
+    @ExceptionHandler(value = InterceptorException.class)
     public R<String> exceptionHandler(InterceptorException ex){
-        log.info("错误信息："+ex.getMessage());
+        System.out.println("接收到异常");
+      //  log.info("错误信息："+ex.getMessage());
         return R.error(ex.getMessage());
     }
 

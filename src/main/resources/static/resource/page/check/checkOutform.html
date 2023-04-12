@@ -37,7 +37,17 @@
             <el-button type="primary" plain @click="init" style="position: absolute; left: 730px;">查询</el-button>
             <el-button style="position: absolute;left: 1150px" type="danger" plain @click="submitHandle('批量')">批量审核</el-button>
             <el-switch
-                    style="position: absolute;left: 950px;top: 40px"
+                    style="position: absolute;left: 930px;top: 25px"
+                    active-text="按时间显示"
+                    v-model="orderTime"
+                    active-color="#13ce66"
+                    active-value="1"
+                    inactive-value="0"
+                    @change="init"
+            >
+            </el-switch>
+            <el-switch
+                    style="position: absolute;left: 850px;top: 55px"
                     active-text="显示全部"
                     inactive-text="显示未审核"
                     v-model="allbutton"
@@ -300,7 +310,8 @@
                     id: this.input ? this.input : undefined,
                     beginTime: this.beginTime?this.beginTime : undefined,
                     endTime: this.endTime? this.endTime: undefined,
-                    checkStatus: this.allbutton==0?'未审核':undefined
+                    checkStatus: this.allbutton==0?'未审核':undefined,
+                    orderTime:this.orderTime==1?'按时间排序':undefined
                 }
                 await getAllOutformCheck(params).then(res => {
                     if (String(res.code) === '1') {

@@ -9,6 +9,7 @@
   })
   // request拦截器
   service.interceptors.request.use(config => {
+
     // get请求映射params参数
     if (config.method === 'get' && config.params) {
       let url = config.url + '?';
@@ -48,6 +49,7 @@
       //获取当前
       if (res.data.code === 0 && res.data.msg === '访问错误资源') {// 返回登录页面
         console.log('---/resource/page/login/login.html---',code)
+        console.log(res.data.msg)
         localStorage.removeItem('userInfo')
         window.top.location.href = '/resource/page/login/login.html'
       } else {

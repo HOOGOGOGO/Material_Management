@@ -194,6 +194,7 @@
                     name: this.input ? this.input : undefined,
                     categoryName: this.input2 ? this.input2 : undefined
                 }
+                
                 await getAllMaterial(params).then(res => {
                     if (String(res.code) === '1') {
                         this.tableData = res.data.records || []
